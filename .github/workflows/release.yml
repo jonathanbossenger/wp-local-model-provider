@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      - name: Create release archive
+        run: |
+          zip -r wp-local-model-provider-${{ github.ref_name }}.zip . \
+            -x "*.git*" ".github/*" "tests/*" "*.md" "phpunit.xml*" "phpcs.xml*" "COMPOSER.md"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          files: |
+            wp-local-model-provider-${{ github.ref_name }}.zip
+            README.md
+            CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify Packagist
+        if: ${{ secrets.PACKAGIST_TOKEN != '' }}
+        run: |
+          curl -X POST "https://packagist.org/api/update-package?username=${{ secrets.PACKAGIST_USERNAME }}&apiToken=${{ secrets.PACKAGIST_TOKEN }}" \
+               -d '{"repository":{"url":"https://github.com/jonathanbossenger/wp-local-model-provider"}}'

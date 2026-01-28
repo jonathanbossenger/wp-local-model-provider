@@ -1,15 +1,61 @@
 {
     "name": "jonathanbossenger/wp-local-model-provider",
-    "description": "Local AI model providers for WordPress AI Client",
+    "description": "Local AI model providers (Ollama) for WordPress AI Client. Enables WordPress to use local AI models without cloud API keys.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
+    "keywords": [
+        "wordpress",
+        "ai",
+        "ollama",
+        "local",
+        "machine-learning",
+        "llm",
+        "wordpress-plugin"
+    ],
+    "homepage": "https://github.com/jonathanbossenger/wp-local-model-provider",
+    "authors": [
+        {
+            "name": "Jonathan Bossenger",
+            "email": "jonathan@jonathanbossenger.com",
+            "homepage": "https://github.com/jonathanbossenger",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/jonathanbossenger/wp-local-model-provider/issues",
+        "source": "https://github.com/jonathanbossenger/wp-local-model-provider"
+    },
+    "require": {
+        "php": ">=8.0",
+        "wordpress/wp-ai-client": "^0.2.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0",
+        "squizlabs/php_codesniffer": "^3.7",
+        "wp-coding-standards/wpcs": "^3.0",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0"
+    },
     "autoload": {
         "psr-4": {
             "WpLocalModelProvider\\": "includes/"
         }
     },
-    "require": {
-        "php": ">=8.0",
-        "wordpress/wp-ai-client": "^0.2.1"
-    }
+    "autoload-dev": {
+        "psr-4": {
+            "WpLocalModelProvider\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "phpcs": "phpcs --standard=WordPress wp-local-model-provider.php includes/",
+        "phpcbf": "phpcbf --standard=WordPress wp-local-model-provider.php includes/"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
 }

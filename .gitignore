@@ -1,0 +1,6 @@
+/vendor/
+/node_modules/
+composer.lock
+.DS_Store
+*.log
+/phpcs.xml.cache

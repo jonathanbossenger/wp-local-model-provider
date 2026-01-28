@@ -1,5 +1,9 @@
 # WP Local Model Provider
 
+[![Latest Stable Version](https://poser.pugx.org/jonathanbossenger/wp-local-model-provider/v/stable)](https://packagist.org/packages/jonathanbossenger/wp-local-model-provider)
+[![Total Downloads](https://poser.pugx.org/jonathanbossenger/wp-local-model-provider/downloads)](https://packagist.org/packages/jonathanbossenger/wp-local-model-provider)
+[![License](https://poser.pugx.org/jonathanbossenger/wp-local-model-provider/license)](https://packagist.org/packages/jonathanbossenger/wp-local-model-provider)
+
 A WordPress plugin that provides local AI model support (Ollama) for the WordPress AI Client.
 
 ## Description
@@ -31,17 +35,27 @@ WP Local Model Provider enables WordPress to use local AI models through Ollama,
 
 ## Installation
 
-### Via Composer
+### Via Composer (Recommended)
 
 ```bash
+# Install in your WordPress project
 composer require jonathanbossenger/wp-local-model-provider
 ```
 
+The plugin will be installed to `wp-content/plugins/wp-local-model-provider/` (or `web/app/plugins/` for Bedrock).
+Activate it through the WordPress admin.
+
+**For Bedrock/Roots.io users:**
+The package will automatically install to the correct plugins directory.
+
+**For traditional WordPress installations:**
+Run composer from your WordPress root with proper installer-paths configured, or run it directly in `wp-content/plugins/`.
+
 ### Manual Installation
 
-1. Download the plugin files
+1. Download the latest release from [GitHub Releases](https://github.com/jonathanbossenger/wp-local-model-provider/releases)
 2. Upload to `/wp-content/plugins/wp-local-model-provider/`
-3. Run `composer install` in the plugin directory
+3. Run `composer install --no-dev` in the plugin directory
 4. Activate the plugin through the WordPress admin
 
 ### Setup Ollama
