@@ -1,0 +1,15 @@
+{
+    "name": "jonathanbossenger/wp-local-model-provider",
+    "description": "Local AI model providers for WordPress AI Client",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "autoload": {
+        "psr-4": {
+            "WpLocalModelProvider\\": "includes/"
+        }
+    },
+    "require": {
+        "php": ">=8.0",
+        "wordpress/wp-ai-client": "^0.2.1"
+    }
+}
