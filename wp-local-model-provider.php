@@ -213,7 +213,25 @@ function wp_local_model_provider_ollama_api_key_field() {
 		<input type="password" id="wp_local_model_provider_ollama_api_key" name="wp_local_model_provider_ollama_api_key" value="<?php echo esc_attr( $api_key ); ?>" class="regular-text" />
 		<p class="description"><?php esc_html_e( 'Enter your Ollama Cloud API key. Only required when using Ollama Cloud.', 'wp-local-model-provider' ); ?></p>
 	</div>
-	<script>
+	<?php
+}
+
+add_action( 'admin_enqueue_scripts', 'wp_local_model_provider_enqueue_admin_scripts' );
+
+/**
+ * Enqueue admin scripts.
+ *
+ * @param string $hook_suffix The current admin page hook suffix.
+ * @return void
+ */
+function wp_local_model_provider_enqueue_admin_scripts( $hook_suffix ) {
+	// Only load on our settings page.
+	if ( 'settings_page_wp-local-model-provider' !== $hook_suffix ) {
+		return;
+	}
+
+	// Inline script to toggle API key field visibility.
+	$script = "
 		document.addEventListener('DOMContentLoaded', function() {
 			var modeSelect = document.getElementById('wp_local_model_provider_ollama_deployment_mode');
 			var apiKeyWrapper = document.getElementById('wp_local_model_provider_api_key_wrapper');
@@ -228,8 +246,9 @@ function wp_local_model_provider_ollama_api_key_field() {
 				});
 			}
 		});
-	</script>
-	<?php
+	";
+
+	wp_add_inline_script( 'jquery', $script );
 }
 
 /**
