@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: WP Local Model Provider
- * Description: Provides local AI model support (Ollama) for WordPress AI Client.
- * Version: 1.0.0
+ * Description: Provides local and cloud AI model support (Ollama) for WordPress AI Client.
+ * Version: 1.1.0
  * Author: Jonathan Bossenger
  * Plugin URI: https://github.com/jonathanbossenger/wp-local-model-provider
  * Requires at least: 6.0
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'WP_LOCAL_MODEL_PROVIDER_VERSION', '1.0.0' );
+define( 'WP_LOCAL_MODEL_PROVIDER_VERSION', '1.1.0' );
 define( 'WP_LOCAL_MODEL_PROVIDER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WP_LOCAL_MODEL_PROVIDER_URL', plugin_dir_url( __FILE__ ) );
 
@@ -180,7 +180,7 @@ function wp_local_model_provider_register_settings_fields() {
  * @return void
  */
 function wp_local_model_provider_section_callback() {
-	echo '<p>' . esc_html__( 'Choose which Ollama model to use for AI-powered content generation.', 'wp-local-model-provider' ) . '</p>';
+	echo '<p>' . esc_html__( 'Configure your Ollama deployment mode and select which model to use for AI-powered content generation.', 'wp-local-model-provider' ) . '</p>';
 }
 
 /**
@@ -418,14 +418,22 @@ function wp_local_model_provider_settings_page() {
 
 		<div class="card">
 			<h2><?php esc_html_e( 'About Ollama Models', 'wp-local-model-provider' ); ?></h2>
-			<p><?php esc_html_e( 'Ollama allows you to run large language models locally on your computer without requiring API keys or internet connectivity.', 'wp-local-model-provider' ); ?></p>
+			<p><?php esc_html_e( 'Ollama allows you to run large language models either locally on your computer or through Ollama Cloud.', 'wp-local-model-provider' ); ?></p>
 
-			<h3><?php esc_html_e( 'How to get started:', 'wp-local-model-provider' ); ?></h3>
+			<h3><?php esc_html_e( 'Local Setup:', 'wp-local-model-provider' ); ?></h3>
 			<ol>
 				<li><?php esc_html_e( 'Install Ollama from https://ollama.com', 'wp-local-model-provider' ); ?></li>
 				<li><?php esc_html_e( 'Pull a model: ollama pull llama3.2', 'wp-local-model-provider' ); ?></li>
 				<li><?php esc_html_e( 'Ensure Ollama is running (it starts automatically on most systems)', 'wp-local-model-provider' ); ?></li>
-				<li><?php esc_html_e( 'Select your preferred model above', 'wp-local-model-provider' ); ?></li>
+				<li><?php esc_html_e( 'Select "Local" as deployment mode and choose your model', 'wp-local-model-provider' ); ?></li>
+			</ol>
+
+			<h3><?php esc_html_e( 'Ollama Cloud Setup:', 'wp-local-model-provider' ); ?></h3>
+			<ol>
+				<li><?php esc_html_e( 'Sign up for Ollama Cloud at https://ollama.com/cloud', 'wp-local-model-provider' ); ?></li>
+				<li><?php esc_html_e( 'Get your API key from the Ollama Cloud dashboard', 'wp-local-model-provider' ); ?></li>
+				<li><?php esc_html_e( 'Select "Ollama Cloud" as deployment mode and enter your API key', 'wp-local-model-provider' ); ?></li>
+				<li><?php esc_html_e( 'Choose your preferred model from the available cloud models', 'wp-local-model-provider' ); ?></li>
 			</ol>
 
 			<h3><?php esc_html_e( 'Recommended Models:', 'wp-local-model-provider' ); ?></h3>
