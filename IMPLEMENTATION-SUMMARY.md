@@ -23,6 +23,8 @@ The original issue requested adding support for Ollama Cloud API access alongsid
 - Updated provider registration to use appropriate auth based on mode
 - Enhanced model fetching to support cloud API authentication
 - Added proper JavaScript enqueuing for dynamic UI behavior
+- **Added AJAX endpoint for dynamic model fetching** ⭐
+- **Model list refreshes automatically when deployment mode changes** ⭐
 - Updated settings page with comprehensive help text for both modes
 
 ### 3. Updated Provider Class
@@ -43,7 +45,15 @@ The original issue requested adding support for Ollama Cloud API access alongsid
 Users can switch between local and cloud modes via a dropdown selector in the settings page.
 
 ### Dynamic UI
-The API key field automatically shows/hides based on the selected deployment mode using JavaScript, providing a clean and intuitive user experience.
+The API key field automatically shows/hides based on the selected deployment mode using JavaScript, providing a clean and intuitive user experience. **The model list also refreshes automatically via AJAX when switching modes, fetching models from the appropriate source without requiring a page reload.** ⭐
+
+### Auto-Refresh Models ⭐ NEW
+When users switch between Local and Cloud deployment modes, the model list automatically refreshes:
+- Fetches from `http://localhost:11434/api/tags` for local mode
+- Fetches from `https://api.ollama.ai/api/tags` for cloud mode
+- Shows a loading state during the fetch
+- Updates the dropdown dynamically without page reload
+- Displays context-appropriate error messages
 
 ### Backward Compatibility
 - Default mode is "local" - no breaking changes
@@ -126,21 +136,26 @@ Two filters for customization:
 ### Local Mode
 1. ✅ Verify default mode is "local"
 2. ✅ Confirm model list loads from local Ollama
-3. ✅ Test model selection and persistence
-4. ✅ Verify no API key required
+3. **✅ Switch to Cloud and back - verify model list refreshes** ⭐
+4. ✅ Test model selection and persistence
+5. ✅ Verify no API key required
 
 ### Cloud Mode
 1. Test with valid API key
-2. Test with invalid API key (should error gracefully)
-3. Test without API key (should error gracefully)
+2. **Verify model list refreshes automatically when entering API key** ⭐
+3. Test with invalid API key (should error gracefully)
+4. Test without API key (should error gracefully)
 4. Verify model list loads from cloud
 5. Test model selection and persistence
 
 ### Mode Switching
 1. Start in local mode with model selected
 2. Switch to cloud mode (API key field should appear)
-3. Switch back to local (API key field should hide)
-4. Verify settings persist correctly
+3. **Model list should refresh automatically showing cloud models** ⭐
+4. Switch back to local (API key field should hide)
+5. **Model list should refresh automatically showing local models** ⭐
+6. Verify settings persist correctly
+7. **Verify no page reload required** ⭐
 
 ## Known Considerations
 
@@ -181,9 +196,10 @@ Potential improvements for future versions:
 ✅ Added API key field for cloud mode  
 ✅ Only one model can be selected at a time  
 ✅ UI dynamically shows/hides relevant fields  
+✅ **Model list refreshes automatically when switching modes** ⭐  
 ✅ Backward compatible with existing installations  
 ✅ Comprehensive documentation provided  
 ✅ Code quality standards maintained  
 
 ## Conclusion
-The implementation successfully adds Ollama Cloud support while maintaining full backward compatibility with existing local installations. The solution is minimal, focused, and well-documented, providing users with flexible deployment options without disrupting current workflows.
+The implementation successfully adds Ollama Cloud support while maintaining full backward compatibility with existing local installations. The solution is minimal, focused, and well-documented, providing users with flexible deployment options without disrupting current workflows. **The AJAX-powered model list refresh enhances the user experience by eliminating the need for page reloads when switching between deployment modes.**

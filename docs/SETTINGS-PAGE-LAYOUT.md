@@ -98,6 +98,12 @@ This document shows the layout of the WordPress admin settings page for WP Local
 - **Model Dropdown**: Fetches from Ollama Cloud API
 - **Help Text**: Mentions "Ollama Cloud model"
 
+### When switching modes:
+- **Loading State**: Shows "Loading models..." message
+- **AJAX Request**: Fetches models from appropriate source
+- **No Page Reload**: Everything happens instantly via JavaScript
+- **Model List Updates**: Dropdown repopulates with new models
+
 ### Error States
 
 #### Local Mode - Ollama Not Running
@@ -120,13 +126,26 @@ This document shows the layout of the WordPress admin settings page for WP Local
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+#### Loading State
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Select Ollama Model                                             │
+│                                                                  │
+│ Loading models...                                               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ## JavaScript Behavior
 
 When the deployment mode dropdown changes:
 1. Check selected value
 2. If "cloud": Show API key field
 3. If "local": Hide API key field
-4. Field visibility changes instantly without page reload
+4. **Make AJAX request to fetch models for selected mode** ⭐
+5. **Show loading state while fetching** ⭐
+6. **Update model dropdown with new models** ⭐
+7. **Display appropriate help text** ⭐
+8. Field changes happen instantly without page reload
 
 ## Database Storage
 

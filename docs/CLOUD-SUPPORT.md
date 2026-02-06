@@ -24,9 +24,11 @@ The plugin now supports two deployment modes:
 - Added API key setting (`wp_local_model_provider_ollama_api_key`)
 - Updated `wp_local_model_provider_register_ollama()` to use appropriate authentication based on mode
 - Added new settings fields for deployment mode and API key
-- Added JavaScript for conditional field display
+- Added JavaScript for conditional field display and dynamic model list refresh
+- Added AJAX endpoint `wp_local_model_provider_ajax_get_models()` for fetching models
 - Updated model fetching to support cloud authentication
 - Updated settings page info card with cloud instructions
+- Model list now refreshes automatically when deployment mode changes
 
 #### `includes/Providers/Ollama/OllamaProvider.php`
 - Updated `baseUrl()` method to return different URL based on deployment mode
@@ -78,6 +80,8 @@ The settings page now includes:
 
 3. **Select Ollama Model** dropdown
    - Dynamically populated based on selected mode
+   - **Automatically refreshes when deployment mode changes** (AJAX-powered)
+   - Shows loading state during refresh
    - Error messages adapt to deployment mode
 
 4. **Info Card**
@@ -97,31 +101,36 @@ The settings page now includes:
 - API key field uses password input type
 - Authentication only applied to cloud mode
 - No changes to local mode security model (no authentication)
+- AJAX endpoint secured with nonce verification
+- AJAX endpoint restricted to users with `manage_options` capability
 
 ## Testing Recommendations
 
 ### Local Mode Testing
 1. Set deployment mode to 'Local'
 2. Verify model list loads from local Ollama
-3. Select a model and save
-4. Verify model selection persists
-5. Confirm no API key is required or used
+3. **Switch to Cloud mode and back to Local - verify model list refreshes** ⭐
+4. Select a model and save
+5. Verify model selection persists
+6. Confirm no API key is required or used
 
 ### Cloud Mode Testing
 1. Set deployment mode to 'Ollama Cloud'
-2. Enter API key
-3. Verify model list loads from cloud
-4. Select a cloud model and save
-5. Verify model selection persists
-6. Test with invalid API key (should show error)
-7. Test without API key (should show error)
+2. **Verify model list refreshes automatically** ⭐
+3. Enter API key
+4. **Verify model list refreshes again with cloud models** ⭐
+5. Select a cloud model and save
+6. Verify model selection persists
+7. Test with invalid API key (should show error)
+8. Test without API key (should show error)
 
 ### Switching Modes
 1. Start in local mode with model selected
 2. Switch to cloud mode
-3. Model selection should be preserved
+3. **Model list should refresh automatically showing cloud models** ⭐
 4. Switch back to local
-5. Previous local model should still be available
+5. **Model list should refresh automatically showing local models** ⭐
+6. Verify no page reload is required for any mode switch
 
 ## Known Limitations
 
