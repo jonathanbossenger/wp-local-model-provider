@@ -254,7 +254,7 @@ function wp_local_model_provider_enqueue_admin_scripts( $hook_suffix ) {
 				});
 			}
 			
-			// Helper function to escape HTML
+			// Helper function to escape HTML (works for both text content and attributes)
 			function escapeHtml(text) {
 				var div = document.createElement('div');
 				div.textContent = text;
@@ -325,6 +325,9 @@ add_action( 'wp_ajax_wp_local_model_provider_get_models', 'wp_local_model_provid
 
 /**
  * AJAX handler to get models for a specific deployment mode.
+ *
+ * Note: This endpoint should only be accessed over HTTPS to protect API keys.
+ * WordPress admin is typically served over HTTPS in production environments.
  *
  * @return void
  */
