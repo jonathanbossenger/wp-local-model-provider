@@ -254,6 +254,13 @@ function wp_local_model_provider_enqueue_admin_scripts( $hook_suffix ) {
 				});
 			}
 			
+			// Helper function to escape HTML
+			function escapeHtml(text) {
+				var div = document.createElement('div');
+				div.textContent = text;
+				return div.innerHTML;
+			}
+			
 			function refreshModelList(deploymentMode, apiKey) {
 				// Show loading state
 				var originalContent = modelWrapper.innerHTML;
@@ -279,22 +286,24 @@ function wp_local_model_provider_enqueue_admin_scripts( $hook_suffix ) {
 						
 						if (result.data.models && result.data.models.length > 0) {
 							result.data.models.forEach(function(model) {
-								html += '<option value=\"' + model.id + '\">' + model.name + '</option>';
+								var safeId = escapeHtml(model.id || '');
+								var safeName = escapeHtml(model.name || '');
+								html += '<option value=\"' + safeId + '\">' + safeName + '</option>';
 							});
 						}
 						
 						html += '</select>';
-						html += '<p class=\"description\">' + result.data.description + '</p>';
+						html += '<p class=\"description\">' + escapeHtml(result.data.description || '') + '</p>';
 						
 						modelWrapper.innerHTML = html;
 					} else {
 						// Show error message
 						var errorHtml = '<p class=\"description\" style=\"color: #d63638;\">';
 						errorHtml += '<strong>" . esc_js( __( 'Error:', 'wp-local-model-provider' ) ) . "</strong> ';
-						errorHtml += result.data.message;
+						errorHtml += escapeHtml(result.data.message || '');
 						errorHtml += '</p>';
 						if (result.data.help) {
-							errorHtml += '<p class=\"description\">' + result.data.help + '</p>';
+							errorHtml += '<p class=\"description\">' + escapeHtml(result.data.help) + '</p>';
 						}
 						
 						modelWrapper.innerHTML = errorHtml;
@@ -340,8 +349,18 @@ function wp_local_model_provider_ajax_get_models() {
 		);
 	}
 
-	$deployment_mode = isset( $_POST['deployment_mode'] ) ? sanitize_text_field( $_POST['deployment_mode'] ) : 'local';
-	$api_key         = isset( $_POST['api_key'] ) ? sanitize_text_field( $_POST['api_key'] ) : '';
+	$deployment_mode = isset( $_POST['deployment_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['deployment_mode'] ) ) : 'local';
+	$api_key         = isset( $_POST['api_key'] ) ? trim( wp_unslash( $_POST['api_key'] ) ) : '';
+
+	// Validate API key if cloud mode.
+	if ( 'cloud' === $deployment_mode && empty( $api_key ) ) {
+		wp_send_json_error(
+			array(
+				'message' => __( 'API key is required for Ollama Cloud.', 'wp-local-model-provider' ),
+				'help'    => __( 'Please enter your Ollama Cloud API key.', 'wp-local-model-provider' ),
+			)
+		);
+	}
 
 	// Get base URL based on deployment mode.
 	if ( 'cloud' === $deployment_mode ) {
