@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WP Ollama Model Provider
  * Description: Provides local and cloud AI model support (Ollama) for WordPress AI Client.
- * Version: 1.1.0
+ * Version: 1.0.0
  * Author: Jonathan Bossenger
  * Plugin URI: https://github.com/jonathanbossenger/wp-ollama-model-provider
  * Requires at least: 6.0

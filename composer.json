@@ -3,6 +3,7 @@
     "description": "Ollama AI model provider for WordPress AI Client. Enables WordPress to use Ollama models locally or in the cloud.",
     "type": "wordpress-plugin",
     "license": "GPL-2.0-or-later",
+    "version": "1.0.0",
     "keywords": [
         "wordpress",
         "ai",
