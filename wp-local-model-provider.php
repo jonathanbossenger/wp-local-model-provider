@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: WP Local Model Provider
- * Description: Provides local AI model support (Ollama) for WordPress AI Client.
- * Version: 1.0.0
+ * Description: Provides local and cloud AI model support (Ollama) for WordPress AI Client.
+ * Version: 1.1.0
  * Author: Jonathan Bossenger
  * Plugin URI: https://github.com/jonathanbossenger/wp-local-model-provider
  * Requires at least: 6.0
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'WP_LOCAL_MODEL_PROVIDER_VERSION', '1.0.0' );
+define( 'WP_LOCAL_MODEL_PROVIDER_VERSION', '1.1.0' );
 define( 'WP_LOCAL_MODEL_PROVIDER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WP_LOCAL_MODEL_PROVIDER_URL', plugin_dir_url( __FILE__ ) );
 
@@ -62,9 +62,20 @@ function wp_local_model_provider_register_ollama() {
 		// Register the Ollama provider.
 		$registry->registerProvider( \WpLocalModelProvider\Providers\Ollama\OllamaProvider::class );
 
-		// Set no-auth authentication for Ollama (local server doesn't need API keys).
-		$no_auth = new \WpLocalModelProvider\Providers\Ollama\NoAuthRequestAuthentication();
-		$registry->setProviderRequestAuthentication( 'ollama', $no_auth );
+		// Set authentication based on deployment mode.
+		$deployment_mode = get_option( 'wp_local_model_provider_ollama_deployment_mode', 'local' );
+
+		if ( 'cloud' === $deployment_mode ) {
+			$api_key = get_option( 'wp_local_model_provider_ollama_api_key', '' );
+			if ( ! empty( $api_key ) ) {
+				$auth = new \WpLocalModelProvider\Providers\Ollama\ApiKeyRequestAuthentication( $api_key );
+				$registry->setProviderRequestAuthentication( 'ollama', $auth );
+			}
+		} else {
+			// Local mode: no authentication needed.
+			$no_auth = new \WpLocalModelProvider\Providers\Ollama\NoAuthRequestAuthentication();
+			$registry->setProviderRequestAuthentication( 'ollama', $no_auth );
+		}
 	} catch ( Exception $e ) {
 		// Log error if registration fails.
 		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -98,6 +109,29 @@ add_action( 'admin_init', 'wp_local_model_provider_register_settings_fields' );
  * @return void
  */
 function wp_local_model_provider_register_settings_fields() {
+	// Register deployment mode setting.
+	register_setting(
+		'wp_local_model_provider',
+		'wp_local_model_provider_ollama_deployment_mode',
+		array(
+			'type'              => 'string',
+			'default'           => 'local',
+			'sanitize_callback' => 'wp_local_model_provider_sanitize_deployment_mode',
+		)
+	);
+
+	// Register API key setting.
+	register_setting(
+		'wp_local_model_provider',
+		'wp_local_model_provider_ollama_api_key',
+		array(
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'wp_local_model_provider_sanitize_api_key',
+		)
+	);
+
+	// Register model selection setting.
 	register_setting(
 		'wp_local_model_provider',
 		'wp_local_model_provider_ollama_model',
@@ -116,6 +150,22 @@ function wp_local_model_provider_register_settings_fields() {
 	);
 
 	add_settings_field(
+		'wp_local_model_provider_ollama_deployment_mode',
+		__( 'Deployment Mode', 'wp-local-model-provider' ),
+		'wp_local_model_provider_ollama_deployment_mode_field',
+		'wp-local-model-provider',
+		'wp_local_model_provider_section'
+	);
+
+	add_settings_field(
+		'wp_local_model_provider_ollama_api_key',
+		__( 'Ollama Cloud API Key', 'wp-local-model-provider' ),
+		'wp_local_model_provider_ollama_api_key_field',
+		'wp-local-model-provider',
+		'wp_local_model_provider_section'
+	);
+
+	add_settings_field(
 		'wp_local_model_provider_ollama_model',
 		__( 'Select Ollama Model', 'wp-local-model-provider' ),
 		'wp_local_model_provider_ollama_model_field',
@@ -125,12 +175,324 @@ function wp_local_model_provider_register_settings_fields() {
 }
 
 /**
+ * Sanitize deployment mode and clear cache when changed.
+ *
+ * @param string $value The value to sanitize.
+ * @return string The sanitized value.
+ */
+function wp_local_model_provider_sanitize_deployment_mode( $value ) {
+	$old_value = get_option( 'wp_local_model_provider_ollama_deployment_mode', 'local' );
+	$new_value = sanitize_text_field( $value );
+
+	// Clear model cache if deployment mode changed.
+	if ( $old_value !== $new_value ) {
+		delete_transient( 'wp_local_model_provider_ollama_models' );
+	}
+
+	return $new_value;
+}
+
+/**
+ * Sanitize API key and clear cache when changed.
+ *
+ * @param string $value The value to sanitize.
+ * @return string The sanitized value.
+ */
+function wp_local_model_provider_sanitize_api_key( $value ) {
+	$old_value = get_option( 'wp_local_model_provider_ollama_api_key', '' );
+	$new_value = sanitize_text_field( $value );
+
+	// Clear model cache if API key changed.
+	if ( $old_value !== $new_value ) {
+		delete_transient( 'wp_local_model_provider_ollama_models' );
+	}
+
+	return $new_value;
+}
+
+/**
  * Settings section callback.
  *
  * @return void
  */
 function wp_local_model_provider_section_callback() {
-	echo '<p>' . esc_html__( 'Choose which Ollama model to use for AI-powered content generation.', 'wp-local-model-provider' ) . '</p>';
+	echo '<p>' . esc_html__( 'Configure your Ollama deployment mode and select which model to use for AI-powered content generation.', 'wp-local-model-provider' ) . '</p>';
+}
+
+/**
+ * Ollama deployment mode field callback.
+ *
+ * @return void
+ */
+function wp_local_model_provider_ollama_deployment_mode_field() {
+	$deployment_mode = get_option( 'wp_local_model_provider_ollama_deployment_mode', 'local' );
+	?>
+	<select id="wp_local_model_provider_ollama_deployment_mode" name="wp_local_model_provider_ollama_deployment_mode">
+		<option value="local" <?php selected( $deployment_mode, 'local' ); ?>><?php esc_html_e( 'Local (http://localhost:11434)', 'wp-local-model-provider' ); ?></option>
+		<option value="cloud" <?php selected( $deployment_mode, 'cloud' ); ?>><?php esc_html_e( 'Ollama Cloud', 'wp-local-model-provider' ); ?></option>
+	</select>
+	<p class="description"><?php esc_html_e( 'Select whether to use a local Ollama server or Ollama Cloud.', 'wp-local-model-provider' ); ?></p>
+	<?php
+}
+
+/**
+ * Ollama API key field callback.
+ *
+ * @return void
+ */
+function wp_local_model_provider_ollama_api_key_field() {
+	$api_key         = get_option( 'wp_local_model_provider_ollama_api_key', '' );
+	$deployment_mode = get_option( 'wp_local_model_provider_ollama_deployment_mode', 'local' );
+	$display_style   = 'cloud' === $deployment_mode ? '' : 'display: none;';
+	?>
+	<div id="wp_local_model_provider_api_key_wrapper" style="<?php echo esc_attr( $display_style ); ?>">
+		<input type="password" id="wp_local_model_provider_ollama_api_key" name="wp_local_model_provider_ollama_api_key" value="<?php echo esc_attr( $api_key ); ?>" class="regular-text" />
+		<p class="description"><?php esc_html_e( 'Enter your Ollama Cloud API key. Only required when using Ollama Cloud.', 'wp-local-model-provider' ); ?></p>
+	</div>
+	<?php
+}
+
+add_action( 'admin_enqueue_scripts', 'wp_local_model_provider_enqueue_admin_scripts' );
+
+/**
+ * Enqueue admin scripts.
+ *
+ * @param string $hook_suffix The current admin page hook suffix.
+ * @return void
+ */
+function wp_local_model_provider_enqueue_admin_scripts( $hook_suffix ) {
+	// Only load on our settings page.
+	if ( 'settings_page_wp-local-model-provider' !== $hook_suffix ) {
+		return;
+	}
+
+	// Inline script to toggle API key field visibility and refresh models.
+	$script = "
+		document.addEventListener('DOMContentLoaded', function() {
+			var modeSelect = document.getElementById('wp_local_model_provider_ollama_deployment_mode');
+			var apiKeyWrapper = document.getElementById('wp_local_model_provider_api_key_wrapper');
+			var apiKeyInput = document.getElementById('wp_local_model_provider_ollama_api_key');
+			var modelWrapper = document.getElementById('wp_local_model_provider_model_wrapper');
+			
+			if (modeSelect) {
+				modeSelect.addEventListener('change', function() {
+					var isCloud = this.value === 'cloud';
+					
+					// Toggle API key field visibility
+					if (apiKeyWrapper) {
+						apiKeyWrapper.style.display = isCloud ? '' : 'none';
+					}
+					
+					// Refresh model list
+					if (modelWrapper) {
+						refreshModelList(this.value, apiKeyInput ? apiKeyInput.value : '');
+					}
+				});
+			}
+			
+			// Helper function to escape HTML (works for both text content and attributes)
+			function escapeHtml(text) {
+				var div = document.createElement('div');
+				div.textContent = text;
+				return div.innerHTML;
+			}
+			
+			function refreshModelList(deploymentMode, apiKey) {
+				// Show loading state
+				var originalContent = modelWrapper.innerHTML;
+				modelWrapper.innerHTML = '<p class=\"description\">" . esc_js( __( 'Loading models...', 'wp-local-model-provider' ) ) . "</p>';
+				
+				// Make AJAX request
+				var data = new FormData();
+				data.append('action', 'wp_local_model_provider_get_models');
+				data.append('deployment_mode', deploymentMode);
+				data.append('api_key', apiKey);
+				data.append('nonce', '" . wp_create_nonce( 'wp_local_model_provider_get_models' ) . "');
+				
+				fetch(ajaxurl, {
+					method: 'POST',
+					body: data
+				})
+				.then(response => response.json())
+				.then(result => {
+					if (result.success) {
+						// Update model select with new options
+						var html = '<select id=\"wp_local_model_provider_ollama_model\" name=\"wp_local_model_provider_ollama_model\">';
+						html += '<option value=\"\">" . esc_js( __( '-- Select a model --', 'wp-local-model-provider' ) ) . "</option>';
+						
+						if (result.data.models && result.data.models.length > 0) {
+							result.data.models.forEach(function(model) {
+								var safeId = escapeHtml(model.id || '');
+								var safeName = escapeHtml(model.name || '');
+								html += '<option value=\"' + safeId + '\">' + safeName + '</option>';
+							});
+						}
+						
+						html += '</select>';
+						html += '<p class=\"description\">' + escapeHtml(result.data.description || '') + '</p>';
+						
+						modelWrapper.innerHTML = html;
+					} else {
+						// Show error message
+						var errorHtml = '<p class=\"description\" style=\"color: #d63638;\">';
+						errorHtml += '<strong>" . esc_js( __( 'Error:', 'wp-local-model-provider' ) ) . "</strong> ';
+						errorHtml += escapeHtml(result.data.message || '');
+						errorHtml += '</p>';
+						if (result.data.help) {
+							errorHtml += '<p class=\"description\">' + escapeHtml(result.data.help) + '</p>';
+						}
+						
+						modelWrapper.innerHTML = errorHtml;
+					}
+				})
+				.catch(error => {
+					// Restore original content on error
+					modelWrapper.innerHTML = originalContent;
+					console.error('Error fetching models:', error);
+				});
+			}
+		});
+	";
+
+	wp_add_inline_script( 'jquery', $script );
+}
+
+add_action( 'wp_ajax_wp_local_model_provider_get_models', 'wp_local_model_provider_ajax_get_models' );
+
+/**
+ * AJAX handler to get models for a specific deployment mode.
+ *
+ * Note: This endpoint should only be accessed over HTTPS to protect API keys.
+ * WordPress admin is typically served over HTTPS in production environments.
+ *
+ * @return void
+ */
+function wp_local_model_provider_ajax_get_models() {
+	// Verify nonce.
+	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], 'wp_local_model_provider_get_models' ) ) {
+		wp_send_json_error(
+			array(
+				'message' => __( 'Security check failed.', 'wp-local-model-provider' ),
+				'help'    => '',
+			)
+		);
+	}
+
+	// Check user permissions.
+	if ( ! current_user_can( 'manage_options' ) ) {
+		wp_send_json_error(
+			array(
+				'message' => __( 'Insufficient permissions.', 'wp-local-model-provider' ),
+				'help'    => '',
+			)
+		);
+	}
+
+	$deployment_mode = isset( $_POST['deployment_mode'] ) ? sanitize_text_field( wp_unslash( $_POST['deployment_mode'] ) ) : 'local';
+	$api_key         = isset( $_POST['api_key'] ) ? trim( wp_unslash( $_POST['api_key'] ) ) : '';
+
+	// Validate API key if cloud mode.
+	if ( 'cloud' === $deployment_mode && empty( $api_key ) ) {
+		wp_send_json_error(
+			array(
+				'message' => __( 'API key is required for Ollama Cloud.', 'wp-local-model-provider' ),
+				'help'    => __( 'Please enter your Ollama Cloud API key.', 'wp-local-model-provider' ),
+			)
+		);
+	}
+
+	// Get base URL based on deployment mode.
+	if ( 'cloud' === $deployment_mode ) {
+		$base_url = apply_filters( 'wp_ai_client_ollama_cloud_base_url', 'https://ollama.com' );
+	} else {
+		$base_url = apply_filters( 'wp_ai_client_ollama_base_url', 'http://localhost:11434' );
+	}
+
+	// Prepare request arguments.
+	$args = array(
+		'timeout' => 30,
+	);
+
+	// Add authorization header for cloud mode.
+	if ( 'cloud' === $deployment_mode && ! empty( $api_key ) ) {
+		$args['headers'] = array(
+			'Authorization' => 'Bearer ' . $api_key,
+		);
+	}
+
+	// Fetch models from Ollama API.
+	$response = wp_remote_get( $base_url . '/api/tags', $args );
+
+	if ( is_wp_error( $response ) ) {
+		wp_send_json_error(
+			array(
+				'message' => __( 'Cannot connect to Ollama. Please ensure it is running.', 'wp-local-model-provider' ),
+				'help'    => 'cloud' === $deployment_mode
+					? __( 'Please ensure you have entered a valid Ollama Cloud API key.', 'wp-local-model-provider' )
+					: __( 'Please ensure Ollama is running on http://localhost:11434', 'wp-local-model-provider' ),
+			)
+		);
+	}
+
+	$response_code = wp_remote_retrieve_response_code( $response );
+	if ( 200 !== $response_code ) {
+		wp_send_json_error(
+			array(
+				'message' => sprintf(
+					/* translators: %d: HTTP response code */
+					__( 'Ollama API returned error code: %d', 'wp-local-model-provider' ),
+					$response_code
+				),
+				'help'    => 'cloud' === $deployment_mode
+					? __( 'Please ensure you have entered a valid Ollama Cloud API key.', 'wp-local-model-provider' )
+					: __( 'Please ensure Ollama is running on http://localhost:11434', 'wp-local-model-provider' ),
+			)
+		);
+	}
+
+	$body = wp_remote_retrieve_body( $response );
+	$data = json_decode( $body, true );
+
+	if ( ! isset( $data['models'] ) || ! is_array( $data['models'] ) ) {
+		wp_send_json_error(
+			array(
+				'message' => __( 'Invalid response from Ollama API.', 'wp-local-model-provider' ),
+				'help'    => '',
+			)
+		);
+	}
+
+	// Format models for display.
+	$models = array();
+	foreach ( $data['models'] as $model ) {
+		if ( isset( $model['name'] ) ) {
+			$models[] = array(
+				'id'   => $model['name'],
+				'name' => $model['name'],
+			);
+		}
+	}
+
+	if ( empty( $models ) ) {
+		wp_send_json_error(
+			array(
+				'message' => 'cloud' === $deployment_mode
+					? __( 'No Ollama Cloud models found. Please check your API key.', 'wp-local-model-provider' )
+					: __( 'No Ollama models found. Please pull at least one model using: ollama pull llama3.2', 'wp-local-model-provider' ),
+				'help'    => '',
+			)
+		);
+	}
+
+	// Send success response.
+	wp_send_json_success(
+		array(
+			'models'      => $models,
+			'description' => 'cloud' === $deployment_mode
+				? __( 'Select which Ollama Cloud model to use for text generation.', 'wp-local-model-provider' )
+				: __( 'Select which local Ollama model to use for text generation.', 'wp-local-model-provider' ),
+		)
+	);
 }
 
 /**
@@ -139,20 +501,34 @@ function wp_local_model_provider_section_callback() {
  * @return void
  */
 function wp_local_model_provider_ollama_model_field() {
-	$selected_model = get_option( 'wp_local_model_provider_ollama_model', '' );
-	$models         = wp_local_model_provider_get_ollama_models();
+	$selected_model  = get_option( 'wp_local_model_provider_ollama_model', '' );
+	$deployment_mode = get_option( 'wp_local_model_provider_ollama_deployment_mode', 'local' );
+	$models          = wp_local_model_provider_get_ollama_models();
+
+	echo '<div id="wp_local_model_provider_model_wrapper">';
 
 	if ( is_wp_error( $models ) ) {
 		echo '<p class="description" style="color: #d63638;">';
 		echo '<strong>' . esc_html__( 'Error:', 'wp-local-model-provider' ) . '</strong> ';
 		echo esc_html( $models->get_error_message() );
 		echo '</p>';
-		echo '<p class="description">' . esc_html__( 'Please ensure Ollama is running on http://localhost:11434', 'wp-local-model-provider' ) . '</p>';
+
+		if ( 'cloud' === $deployment_mode ) {
+			echo '<p class="description">' . esc_html__( 'Please ensure you have entered a valid Ollama Cloud API key.', 'wp-local-model-provider' ) . '</p>';
+		} else {
+			echo '<p class="description">' . esc_html__( 'Please ensure Ollama is running on http://localhost:11434', 'wp-local-model-provider' ) . '</p>';
+		}
+		echo '</div>';
 		return;
 	}
 
 	if ( empty( $models ) ) {
-		echo '<p class="description">' . esc_html__( 'No Ollama models found. Please pull at least one model using: ollama pull llama3.2', 'wp-local-model-provider' ) . '</p>';
+		if ( 'cloud' === $deployment_mode ) {
+			echo '<p class="description">' . esc_html__( 'No Ollama Cloud models found. Please check your API key.', 'wp-local-model-provider' ) . '</p>';
+		} else {
+			echo '<p class="description">' . esc_html__( 'No Ollama models found. Please pull at least one model using: ollama pull llama3.2', 'wp-local-model-provider' ) . '</p>';
+		}
+		echo '</div>';
 		return;
 	}
 
@@ -170,7 +546,14 @@ function wp_local_model_provider_ollama_model_field() {
 	}
 
 	echo '</select>';
-	echo '<p class="description">' . esc_html__( 'Select which local Ollama model to use for text generation.', 'wp-local-model-provider' ) . '</p>';
+
+	if ( 'cloud' === $deployment_mode ) {
+		echo '<p class="description">' . esc_html__( 'Select which Ollama Cloud model to use for text generation.', 'wp-local-model-provider' ) . '</p>';
+	} else {
+		echo '<p class="description">' . esc_html__( 'Select which local Ollama model to use for text generation.', 'wp-local-model-provider' ) . '</p>';
+	}
+
+	echo '</div>';
 }
 
 /**
@@ -185,11 +568,32 @@ function wp_local_model_provider_get_ollama_models() {
 		return $cached_models;
 	}
 
-	// Get the Ollama base URL (allow filtering for custom installations).
-	$base_url = apply_filters( 'wp_ai_client_ollama_base_url', 'http://localhost:11434' );
+	// Get deployment mode and construct base URL accordingly.
+	$deployment_mode = get_option( 'wp_local_model_provider_ollama_deployment_mode', 'local' );
+
+	if ( 'cloud' === $deployment_mode ) {
+		$base_url = apply_filters( 'wp_ai_client_ollama_cloud_base_url', 'https://ollama.com' );
+	} else {
+		$base_url = apply_filters( 'wp_ai_client_ollama_base_url', 'http://localhost:11434' );
+	}
+
+	// Prepare request arguments.
+	$args = array(
+		'timeout' => 30,
+	);
+
+	// Add authorization header for cloud mode.
+	if ( 'cloud' === $deployment_mode ) {
+		$api_key = get_option( 'wp_local_model_provider_ollama_api_key', '' );
+		if ( ! empty( $api_key ) ) {
+			$args['headers'] = array(
+				'Authorization' => 'Bearer ' . $api_key,
+			);
+		}
+	}
 
 	// Fetch models from Ollama API.
-	$response = wp_remote_get( $base_url . '/api/tags' );
+	$response = wp_remote_get( $base_url . '/api/tags', $args );
 
 	if ( is_wp_error( $response ) ) {
 		return new WP_Error(
@@ -283,14 +687,22 @@ function wp_local_model_provider_settings_page() {
 
 		<div class="card">
 			<h2><?php esc_html_e( 'About Ollama Models', 'wp-local-model-provider' ); ?></h2>
-			<p><?php esc_html_e( 'Ollama allows you to run large language models locally on your computer without requiring API keys or internet connectivity.', 'wp-local-model-provider' ); ?></p>
+			<p><?php esc_html_e( 'Ollama allows you to run large language models either locally on your computer or through Ollama Cloud.', 'wp-local-model-provider' ); ?></p>
 
-			<h3><?php esc_html_e( 'How to get started:', 'wp-local-model-provider' ); ?></h3>
+			<h3><?php esc_html_e( 'Local Setup:', 'wp-local-model-provider' ); ?></h3>
 			<ol>
 				<li><?php esc_html_e( 'Install Ollama from https://ollama.com', 'wp-local-model-provider' ); ?></li>
 				<li><?php esc_html_e( 'Pull a model: ollama pull llama3.2', 'wp-local-model-provider' ); ?></li>
 				<li><?php esc_html_e( 'Ensure Ollama is running (it starts automatically on most systems)', 'wp-local-model-provider' ); ?></li>
-				<li><?php esc_html_e( 'Select your preferred model above', 'wp-local-model-provider' ); ?></li>
+				<li><?php esc_html_e( 'Select "Local" as deployment mode and choose your model', 'wp-local-model-provider' ); ?></li>
+			</ol>
+
+			<h3><?php esc_html_e( 'Ollama Cloud Setup:', 'wp-local-model-provider' ); ?></h3>
+			<ol>
+				<li><?php esc_html_e( 'Sign up for Ollama Cloud at https://ollama.com/cloud', 'wp-local-model-provider' ); ?></li>
+				<li><?php esc_html_e( 'Get your API key from the Ollama Cloud dashboard', 'wp-local-model-provider' ); ?></li>
+				<li><?php esc_html_e( 'Select "Ollama Cloud" as deployment mode and enter your API key', 'wp-local-model-provider' ); ?></li>
+				<li><?php esc_html_e( 'Choose your preferred model from the available cloud models', 'wp-local-model-provider' ); ?></li>
 			</ol>
 
 			<h3><?php esc_html_e( 'Recommended Models:', 'wp-local-model-provider' ); ?></h3>

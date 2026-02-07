@@ -4,25 +4,29 @@
 [![Total Downloads](https://poser.pugx.org/jonathanbossenger/wp-local-model-provider/downloads)](https://packagist.org/packages/jonathanbossenger/wp-local-model-provider)
 [![License](https://poser.pugx.org/jonathanbossenger/wp-local-model-provider/license)](https://packagist.org/packages/jonathanbossenger/wp-local-model-provider)
 
-A WordPress plugin that provides local AI model support (Ollama) for the WordPress AI Client.
+A WordPress plugin that provides local and cloud AI model support (Ollama) for the WordPress AI Client.
 
 ## Description
 
-WP Local Model Provider enables WordPress to use local AI models through Ollama, allowing you to run AI-powered features without cloud API keys. This plugin acts as a provider for the [WordPress AI Client](https://github.com/WordPress/wordpress-ai-client), making local models accessible to any WordPress plugin that uses the AI Client.
+WP Local Model Provider enables WordPress to use AI models through Ollama, supporting both local installations and Ollama Cloud. This plugin acts as a provider for the [WordPress AI Client](https://github.com/WordPress/wordpress-ai-client), making Ollama models accessible to any WordPress plugin that uses the AI Client.
 
 ### Features
 
+- **Flexible Deployment**: Support for both local Ollama installations and Ollama Cloud
 - **Local AI Models**: Run AI models locally with Ollama - no cloud API keys required
-- **Automatic Model Detection**: Discovers all available Ollama models on your system
+- **Cloud Integration**: Use Ollama Cloud for easy access without local installation
+- **Automatic Model Detection**: Discovers all available Ollama models on your system or cloud account
 - **Simple Configuration**: Easy settings page at Settings > Local AI Models
 - **Model Selection**: Choose which Ollama model to use from a dropdown
 - **Model Caching**: Efficient 5-minute cache for model discovery
 - **Public API**: Other plugins can easily check for and use your selected model
-- **Privacy-First**: Text generation happens entirely on your local machine
+- **Privacy-First**: Local mode ensures text generation happens entirely on your machine
 
 ### Supported Providers
 
 - **Ollama** (current)
+  - Local installation
+  - Ollama Cloud
 - Future: LocalAI, LM Studio, and other local providers
 
 ## Requirements
@@ -31,7 +35,8 @@ WP Local Model Provider enables WordPress to use local AI models through Ollama,
 - **WordPress**: 6.0 or higher
 - **Dependencies**:
   - `wordpress/wp-ai-client` ^0.2.1
-  - [Ollama](https://ollama.com) installed and running locally
+  - For local mode: [Ollama](https://ollama.com) installed and running locally
+  - For cloud mode: Ollama Cloud API key
 
 ## Installation
 
@@ -60,6 +65,8 @@ Run composer from your WordPress root with proper installer-paths configured, or
 
 ### Setup Ollama
 
+#### Local Setup
+
 1. Install Ollama from https://ollama.com
 2. Pull at least one model:
    ```bash
@@ -70,11 +77,27 @@ Run composer from your WordPress root with proper installer-paths configured, or
    curl http://localhost:11434/api/tags
    ```
 
+#### Ollama Cloud Setup
+
+1. Sign up for Ollama Cloud at https://ollama.com/cloud
+2. Get your API key from the Ollama Cloud dashboard
+
 ## Configuration
 
+### For Local Ollama:
+
 1. Navigate to **Settings > Local AI Models** in WordPress admin
-2. Select your preferred Ollama model from the dropdown
-3. Click **Save Settings**
+2. Select **Local** as the deployment mode
+3. Select your preferred Ollama model from the dropdown
+4. Click **Save Settings**
+
+### For Ollama Cloud:
+
+1. Navigate to **Settings > Local AI Models** in WordPress admin
+2. Select **Ollama Cloud** as the deployment mode
+3. Enter your Ollama Cloud API key
+4. Select your preferred model from the dropdown
+5. Click **Save Settings**
 
 Your selected model is now available to all WordPress plugins that use the AI Client.
 

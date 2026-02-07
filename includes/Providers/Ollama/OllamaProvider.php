@@ -37,6 +37,20 @@ class OllamaProvider extends AbstractApiProvider {
 	 * @return string Base URL.
 	 */
 	protected static function baseUrl(): string {
+		// Check deployment mode.
+		$deployment_mode = get_option( 'wp_local_model_provider_ollama_deployment_mode', 'local' );
+
+		if ( 'cloud' === $deployment_mode ) {
+			/**
+			 * Filter the Ollama Cloud base URL.
+			 *
+			 * @since 1.1.0
+			 *
+			 * @param string $base_url Default Ollama Cloud base URL.
+			 */
+			return apply_filters( 'wp_ai_client_ollama_cloud_base_url', 'https://ollama.com' );
+		}
+
 		/**
 		 * Filter the Ollama base URL.
 		 *
