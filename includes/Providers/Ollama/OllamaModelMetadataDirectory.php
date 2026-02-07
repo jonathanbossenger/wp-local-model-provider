@@ -2,12 +2,12 @@
 /**
  * Ollama Model Metadata Directory implementation.
  *
- * @package wp-local-model-provider
+ * @package wp-ollama-model-provider
  */
 
 declare(strict_types=1);
 
-namespace WpLocalModelProvider\Providers\Ollama;
+namespace WpOllamaModelProvider\Providers\Ollama;
 
 use WordPress\AiClient\Messages\Enums\ModalityEnum;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiBasedModelMetadataDirectory;

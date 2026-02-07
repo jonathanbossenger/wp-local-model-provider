@@ -1,4 +1,4 @@
-# Quick Start Guide - WP Local Model Provider
+# Quick Start Guide - WP Ollama Model Provider
 
 Get up and running with Ollama in WordPress in 5 minutes!
 
@@ -26,12 +26,12 @@ Get up and running with Ollama in WordPress in 5 minutes!
 ## Setup in WordPress
 
 ### Step 1: Install the Plugin
-1. Install and activate **WP Local Model Provider** plugin
+1. Install and activate **WP Ollama Model Provider** plugin
 2. Ensure **WordPress AI Client** (`wordpress/wp-ai-client`) is also installed
 
 ### Step 2: Configure Your Model
 1. Login to WordPress admin
-2. Navigate to **Settings > Local AI Models**
+2. Navigate to **Settings > Ollama AI Models**
 3. Select your preferred model from the dropdown (e.g., "llama3.2")
 4. Click **Save Settings**
 
@@ -70,7 +70,7 @@ ollama pull codellama
 ollama pull llama3.2
 ```
 
-Then return to **Settings > Local AI Models**, use the "Refresh Model List" button, and select your new model!
+Then return to **Settings > Ollama AI Models**, use the "Refresh Model List" button, and select your new model!
 
 ## Important Notes
 
@@ -111,8 +111,8 @@ ollama serve
 Other WordPress plugins can use your selected Ollama model by calling:
 
 ```php
-if ( function_exists( 'wp_local_model_provider_get_selected_model' ) ) {
-    $selected_model = wp_local_model_provider_get_selected_model( 'ollama' );
+if ( function_exists( 'wp_ollama_model_provider_get_selected_model' ) ) {
+    $selected_model = wp_ollama_model_provider_get_selected_model( 'ollama' );
     // Use $selected_model with WordPress AI Client
 }
 ```
@@ -126,7 +126,7 @@ if ( function_exists( 'wp_local_model_provider_get_selected_model' ) ) {
 ## Need Help?
 
 1. Check that Ollama is running: `ollama list`
-2. Verify WordPress can reach Ollama: Settings > Local AI Models (should show models)
+2. Verify WordPress can reach Ollama: Settings > Ollama AI Models (should show models)
 3. Check WordPress debug log: `wp-content/debug.log` (enable WP_DEBUG first)
 4. See `OLLAMA-INTEGRATION.md` troubleshooting section
 

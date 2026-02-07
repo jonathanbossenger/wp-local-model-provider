@@ -1,15 +1,15 @@
-# WP Local Model Provider - Copilot Instructions
+# WP Ollama Model Provider - Copilot Instructions
 
 ## Project Overview
 
-This is a WordPress plugin that provides local AI model support (Ollama) for the WordPress AI Client. It enables WordPress to use local AI models without cloud API keys by acting as a provider for the [WordPress AI Client](https://github.com/WordPress/wordpress-ai-client).
+This is a WordPress plugin that provides Ollama AI model support (local and cloud) for the WordPress AI Client. It enables WordPress to use Ollama models by acting as a provider for the [WordPress AI Client](https://github.com/WordPress/wordpress-ai-client).
 
 **Key Technologies:**
 - PHP 8.0+ with strict types
 - WordPress 6.0+
 - Composer (PSR-4 autoloading)
 - WordPress AI Client library (`wordpress/wp-ai-client`)
-- Ollama (local AI model server)
+- Ollama (local AI model server or cloud)
 
 ## Build, Lint, and Test Commands
 
@@ -41,7 +41,7 @@ vendor/bin/phpunit tests/SomeTest.php
 The plugin uses a provider pattern to integrate with WordPress AI Client:
 
 ```
-wp-local-model-provider.php (entry point)
+wp-ollama-model-provider.php (entry point)
     ↓
 Registers OllamaProvider with AI Client registry
     ↓
@@ -49,31 +49,34 @@ includes/Providers/Ollama/
     ├── OllamaProvider.php           - Main provider class (extends AbstractApiProvider)
     ├── OllamaTextGenerationModel.php - Text generation implementation
     ├── OllamaModelMetadataDirectory.php - Model metadata/discovery
-    └── NoAuthRequestAuthentication.php - No-auth handler (local = no API keys)
+    ├── NoAuthRequestAuthentication.php - No-auth handler (local = no API keys)
+    └── ApiKeyRequestAuthentication.php - API key handler (cloud mode)
 ```
 
 **Key Flow:**
-1. Plugin init hook (`wp_local_model_provider_init`) registers the provider
+1. Plugin init hook (`wp_ollama_model_provider_init`) registers the provider
 2. Provider registers with `WordPress\AiClient\AiClient::defaultRegistry()`
-3. NoAuth authentication is set (local server needs no API keys)
+3. Authentication is set based on deployment mode (local or cloud)
 4. Settings page allows users to select which Ollama model to use
 5. Other plugins query selected model via public API functions
 
 ### Settings Architecture
 
 Settings are stored as WordPress options:
-- `wp_local_model_provider_ollama_model` - Selected model ID
-- Model list cached in transient `wp_local_model_provider_ollama_models` (5 min TTL)
+- `wp_ollama_model_provider_ollama_deployment_mode` - Deployment mode (local or cloud)
+- `wp_ollama_model_provider_ollama_api_key` - API key for cloud mode
+- `wp_ollama_model_provider_ollama_model` - Selected model ID
+- Model list cached in transient `wp_ollama_model_provider_ollama_models` (5 min TTL)
 
-Admin settings page: `Settings > Local AI Models`
+Admin settings page: `Settings > Ollama AI Models`
 
 ### Public API
 
 Three public functions for plugin integration:
 ```php
-wp_local_model_provider_is_provider_registered( 'ollama' )  // bool
-wp_local_model_provider_has_settings_page()                 // bool
-wp_local_model_provider_get_selected_model( 'ollama' )      // string (model ID)
+wp_ollama_model_provider_is_provider_registered( 'ollama' )  // bool
+wp_ollama_model_provider_has_settings_page()                 // bool
+wp_ollama_model_provider_get_selected_model( 'ollama' )      // string (model ID)
 ```
 
 ## Key Conventions
@@ -81,17 +84,20 @@ wp_local_model_provider_get_selected_model( 'ollama' )      // string (model ID)
 ### WordPress Coding Standards
 
 Follows [WordPress Coding Standards](https://developer.wordpress.org/coding-standards/wordpress-coding-standards/php/):
-- WordPress naming: `wp_local_model_provider_function_name()`
-- Prefixes: All functions/hooks/options use `wp_local_model_provider_` prefix
+- WordPress naming: `wp_ollama_model_provider_function_name()`
+- Prefixes: All functions/hooks/options use `wp_ollama_model_provider_` prefix
 - Strict typing: All class files use `declare(strict_types=1);`
-- Namespaces: PSR-4 under `WpLocalModelProvider\`
+- Namespaces: PSR-4 under `WpOllamaModelProvider\`
 
 ### Filters
 
-Two key filters for customization:
+Three key filters for customization:
 ```php
 // Change Ollama server URL (default: http://localhost:11434)
 apply_filters( 'wp_ai_client_ollama_base_url', 'http://localhost:11434' )
+
+// Change Ollama Cloud URL (default: https://ollama.com)
+apply_filters( 'wp_ai_client_ollama_cloud_base_url', 'https://ollama.com' )
 
 // Adjust request timeout for slower models
 apply_filters( 'wp_ai_client_default_request_timeout', $timeout )
@@ -107,23 +113,23 @@ apply_filters( 'wp_ai_client_default_request_timeout', $timeout )
 
 Model list is cached as a transient for 5 minutes to reduce API calls to Ollama:
 ```php
-get_transient( 'wp_local_model_provider_ollama_models' )
-set_transient( 'wp_local_model_provider_ollama_models', $models, 5 * MINUTE_IN_SECONDS )
-delete_transient( 'wp_local_model_provider_ollama_models' ) // On refresh
+get_transient( 'wp_ollama_model_provider_ollama_models' )
+set_transient( 'wp_ollama_model_provider_ollama_models', $models, 5 * MINUTE_IN_SECONDS )
+delete_transient( 'wp_ollama_model_provider_ollama_models' ) // On refresh
 ```
 
 ### Plugin Constants
 
 ```php
-WP_LOCAL_MODEL_PROVIDER_VERSION  // Plugin version
-WP_LOCAL_MODEL_PROVIDER_PATH     // Plugin directory path
-WP_LOCAL_MODEL_PROVIDER_URL      // Plugin directory URL
+WP_OLLAMA_MODEL_PROVIDER_VERSION  // Plugin version
+WP_OLLAMA_MODEL_PROVIDER_PATH     // Plugin directory path
+WP_OLLAMA_MODEL_PROVIDER_URL      // Plugin directory URL
 ```
 
 ## Provider Extensibility
 
-The plugin is designed to support multiple local providers in the future:
-- Current: Ollama only
+The plugin is designed to support multiple providers in the future:
+- Current: Ollama only (local and cloud)
 - Future: LocalAI, LM Studio, etc.
 
 When adding new providers:
@@ -137,7 +143,7 @@ When adding new providers:
 
 ### Installation Methods
 
-1. **Composer** (recommended): `composer require jonathanbossenger/wp-local-model-provider`
+1. **Composer** (recommended): `composer require jonathanbossenger/wp-ollama-model-provider`
    - Works with Bedrock: installs to `web/app/plugins/`
    - Traditional WordPress: requires installer-paths config
 2. **Manual**: Download, run `composer install --no-dev`, activate
@@ -146,8 +152,8 @@ When adding new providers:
 
 Plugin checks for vendor autoloader:
 ```php
-if ( file_exists( WP_LOCAL_MODEL_PROVIDER_PATH . 'vendor/autoload.php' ) ) {
-    require_once WP_LOCAL_MODEL_PROVIDER_PATH . 'vendor/autoload.php';
+if ( file_exists( WP_OLLAMA_MODEL_PROVIDER_PATH . 'vendor/autoload.php' ) ) {
+    require_once WP_OLLAMA_MODEL_PROVIDER_PATH . 'vendor/autoload.php';
 }
 ```
 
@@ -158,7 +164,7 @@ if ( file_exists( WP_LOCAL_MODEL_PROVIDER_PATH . 'vendor/autoload.php' ) ) {
 3. Install and run Ollama: https://ollama.com
 4. Pull at least one model: `ollama pull llama3.2`
 5. Activate plugin in WordPress admin
-6. Navigate to Settings > Local AI Models to configure
+6. Navigate to Settings > Ollama AI Models to configure
 
 ## Debugging
 
@@ -180,12 +186,14 @@ Check `wp-content/debug.log` for:
 - `docs/QUICK-START.md` - 5-minute setup guide
 - `docs/OLLAMA-MODELS.md` - Model recommendations and performance
 - `docs/OLLAMA-INTEGRATION.md` - Technical integration details
+- `docs/CLOUD-SUPPORT.md` - Cloud support implementation details
+- `docs/SETTINGS-PAGE-LAYOUT.md` - Settings page UI layout
 - `COMPOSER.md` - Detailed Packagist distribution plan and versioning strategy
 
 ## Release Process
 
-1. Update version in `wp-local-model-provider.php` header
-2. Update `WP_LOCAL_MODEL_PROVIDER_VERSION` constant
+1. Update version in `wp-ollama-model-provider.php` header
+2. Update `WP_OLLAMA_MODEL_PROVIDER_VERSION` constant
 3. Update `CHANGELOG.md`
 4. Commit: `git commit -m "Release vX.Y.Z"`
 5. Tag: `git tag -a vX.Y.Z -m "Release version X.Y.Z"`

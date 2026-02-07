@@ -1,6 +1,6 @@
 # Ollama Provider Integration Guide
 
-This guide explains how the Ollama provider works within the WP Local Model Provider plugin.
+This guide explains how the Ollama provider works within the WP Ollama Model Provider plugin.
 
 ## Overview
 
@@ -14,13 +14,13 @@ The Ollama provider enables WordPress plugins to use local Ollama models for AI 
    curl http://localhost:11434/api/tags
    ```
 
-2. **WP Local Model Provider Plugin**: This plugin must be installed and activated in WordPress
+2. **WP Ollama Model Provider Plugin**: This plugin must be installed and activated in WordPress
 
 ## Implementation Overview
 
 ### Provider Registration
 
-The plugin automatically registers the Ollama provider during WordPress initialization in `wp-local-model-provider.php`:
+The plugin automatically registers the Ollama provider during WordPress initialization in `wp-ollama-model-provider.php`:
 
 ```php
 /**
@@ -28,13 +28,13 @@ The plugin automatically registers the Ollama provider during WordPress initiali
  *
  * @return void
  */
-function wp_local_model_provider_init() {
-	if ( class_exists( 'WordPress\AI_Client\AI_Client' ) ) {
-		\WordPress\AI_Client\AI_Client::init();
+function wp_ollama_model_provider_init() {
+if ( class_exists( 'WordPress\AI_Client\AI_Client' ) ) {
+\WordPress\AI_Client\AI_Client::init();
 
-		// Register the Ollama provider
-		wp_local_model_provider_register_ollama();
-	}
+// Register the Ollama provider
+wp_ollama_model_provider_register_ollama();
+}
 }
 
 /**
@@ -42,28 +42,28 @@ function wp_local_model_provider_init() {
  *
  * @return void
  */
-function wp_local_model_provider_register_ollama() {
-	// Check if the Ollama provider class exists
-	if ( ! class_exists( 'WpLocalModelProvider\Providers\Ollama\OllamaProvider' ) ) {
-		return;
-	}
+function wp_ollama_model_provider_register_ollama() {
+// Check if the Ollama provider class exists
+if ( ! class_exists( 'WpOllamaModelProvider\Providers\Ollama\OllamaProvider' ) ) {
+return;
+}
 
-	try {
-		// Get the provider registry from the PHP AI Client
-		$registry = \WordPress\AiClient\AiClient::defaultRegistry();
+try {
+// Get the provider registry from the PHP AI Client
+$registry = \WordPress\AiClient\AiClient::defaultRegistry();
 
-		// Register the Ollama provider
-		$registry->registerProvider( \WpLocalModelProvider\Providers\Ollama\OllamaProvider::class );
+// Register the Ollama provider
+$registry->registerProvider( \WpOllamaModelProvider\Providers\Ollama\OllamaProvider::class );
 
-		// Set no-auth authentication for Ollama (local server doesn't need API keys)
-		$no_auth = new \WpLocalModelProvider\Providers\Ollama\NoAuthRequestAuthentication();
-		$registry->setProviderRequestAuthentication( 'ollama', $no_auth );
-	} catch ( Exception $e ) {
-		// Log error if registration fails
-		if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-			error_log( 'Failed to register Ollama provider: ' . $e->getMessage() );
-		}
-	}
+// Set no-auth authentication for Ollama (local server doesn't need API keys)
+$no_auth = new \WpOllamaModelProvider\Providers\Ollama\NoAuthRequestAuthentication();
+$registry->setProviderRequestAuthentication( 'ollama', $no_auth );
+} catch ( Exception $e ) {
+// Log error if registration fails
+if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+error_log( 'Failed to register Ollama provider: ' . $e->getMessage() );
+}
+}
 }
 ```
 
@@ -71,7 +71,7 @@ function wp_local_model_provider_register_ollama() {
 
 The plugin provides a dedicated settings page for selecting your Ollama model:
 
-1. Navigate to **Settings > Local AI Models** in WordPress admin
+1. Navigate to **Settings > Ollama AI Models** in WordPress admin
 2. The page will automatically detect all available Ollama models on your system
 3. Select your preferred model from the dropdown
 4. Click **Save Settings**
@@ -89,13 +89,13 @@ The plugin provides a dedicated settings page for selecting your Ollama model:
 Other plugins can use the selected Ollama model through the public API:
 
 ```php
-// Check if wp-local-model-provider is active and has a selected model
-if ( function_exists( 'wp_local_model_provider_get_selected_model' ) ) {
-    $selected_ollama_model = wp_local_model_provider_get_selected_model( 'ollama' );
+// Check if wp-ollama-model-provider is active and has a selected model
+if ( function_exists( 'wp_ollama_model_provider_get_selected_model' ) ) {
+    $selected_ollama_model = wp_ollama_model_provider_get_selected_model( 'ollama' );
 
     if ( ! empty( $selected_ollama_model ) &&
-         class_exists( 'WpLocalModelProvider\Providers\Ollama\OllamaProvider' ) ) {
-        $model = \WpLocalModelProvider\Providers\Ollama\OllamaProvider::model( $selected_ollama_model );
+         class_exists( 'WpOllamaModelProvider\Providers\Ollama\OllamaProvider' ) ) {
+        $model = \WpOllamaModelProvider\Providers\Ollama\OllamaProvider::model( $selected_ollama_model );
         $registry = \WordPress\AiClient\AiClient::defaultRegistry();
         $registry->bindModelDependencies( $model );
 
@@ -154,7 +154,7 @@ If Ollama runs on a different host or port, you can configure it via a filter:
 
 ```php
 add_filter( 'wp_ai_client_ollama_base_url', function() {
-	return 'http://192.168.1.100:11434'; // Remote Ollama server
+return 'http://192.168.1.100:11434'; // Remote Ollama server
 } );
 ```
 
@@ -164,7 +164,7 @@ Ollama can be slower than cloud providers, especially with larger models. Adjust
 
 ```php
 add_filter( 'wp_ai_client_default_request_timeout', function() {
-	return 120; // 2 minutes for slower local models
+return 120; // 2 minutes for slower local models
 } );
 ```
 
@@ -172,32 +172,32 @@ add_filter( 'wp_ai_client_default_request_timeout', function() {
 
 The plugin provides three public API functions:
 
-### wp_local_model_provider_is_provider_registered( $provider_slug )
+### wp_ollama_model_provider_is_provider_registered( $provider_slug )
 
 Check if a provider is registered.
 
 ```php
-if ( wp_local_model_provider_is_provider_registered( 'ollama' ) ) {
+if ( wp_ollama_model_provider_is_provider_registered( 'ollama' ) ) {
     // Ollama provider is available
 }
 ```
 
-### wp_local_model_provider_has_settings_page()
+### wp_ollama_model_provider_has_settings_page()
 
 Check if the settings page exists.
 
 ```php
-if ( wp_local_model_provider_has_settings_page() ) {
+if ( wp_ollama_model_provider_has_settings_page() ) {
     // Settings page is available
 }
 ```
 
-### wp_local_model_provider_get_selected_model( $provider_slug )
+### wp_ollama_model_provider_get_selected_model( $provider_slug )
 
 Get the selected model for a provider.
 
 ```php
-$selected_model = wp_local_model_provider_get_selected_model( 'ollama' );
+$selected_model = wp_ollama_model_provider_get_selected_model( 'ollama' );
 if ( ! empty( $selected_model ) ) {
     // Use the selected model
 }
@@ -221,7 +221,7 @@ if ( ! empty( $selected_model ) ) {
 
 4. **Provider Not Available**
    - **Cause**: Plugin not activated or Ollama provider classes not loaded
-   - **Solution**: Ensure wp-local-model-provider is activated and wp-ai-client is installed
+   - **Solution**: Ensure wp-ollama-model-provider is activated and wp-ai-client is installed
 
 ### Debugging
 
@@ -257,7 +257,7 @@ Check logs at `wp-content/debug.log` for Ollama registration and request errors.
    ```
 
 3. Test through WordPress plugin:
-   - Go to Settings > Local AI Models
+   - Go to Settings > Ollama AI Models
    - Select Ollama model
    - Test with another plugin that uses wp-ai-client
 

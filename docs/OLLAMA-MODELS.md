@@ -127,14 +127,14 @@ curl http://localhost:11434/api/tags
 ```
 
 ### In WordPress
-1. Go to **Settings > Local AI Models**
+1. Go to **Settings > Ollama AI Models**
 2. All pulled models appear in the model dropdown
 3. Select your preferred model and save
 
 ## Switching Models in WordPress
 
 1. Pull the model you want to try (if not already pulled)
-2. Go to **Settings > Local AI Models** in WordPress admin
+2. Go to **Settings > Ollama AI Models** in WordPress admin
 3. Select the model from dropdown
 4. Click **Save Settings**
 5. Your WordPress plugins will now use the selected model
@@ -208,16 +208,9 @@ add_filter( 'wp_ai_client_default_request_timeout', function() {
    ollama list
    ```
 
-2. Restart Ollama:
-   ```bash
-   # Stop Ollama
-   pkill ollama
+2. Restart Ollama if needed
 
-   # Start again
-   ollama serve
-   ```
-
-3. Use the Refresh Model List button on **Settings > Local AI Models**
+3. Use the Refresh Model List button on **Settings > Ollama AI Models**
 
 ### Model Running Slow
 
@@ -243,7 +236,7 @@ ollama pull llama3.2:3b   # Balanced
 ollama pull mistral       # Creative
 
 # Test each one:
-# 1. Go to Settings > Local AI Models
+# 1. Go to Settings > Ollama AI Models
 # 2. Select model and save
 # 3. Test content generation with your WordPress plugin
 # 4. Compare quality vs speed
@@ -253,6 +246,6 @@ ollama pull mistral       # Creative
 
 To see which model is currently active:
 
-1. Go to **Settings > Local AI Models**
+1. Go to **Settings > Ollama AI Models**
 2. Check the selected model in the dropdown
-3. This model will be used automatically by all WordPress plugins that use wp-local-model-provider
+3. This model will be used automatically by all WordPress plugins that use wp-ollama-model-provider

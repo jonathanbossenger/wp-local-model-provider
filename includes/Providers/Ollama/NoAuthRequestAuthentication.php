@@ -2,12 +2,12 @@
 /**
  * No-Authentication Request Authentication implementation for Ollama.
  *
- * @package wp-local-model-provider
+ * @package wp-ollama-model-provider
  */
 
 declare(strict_types=1);
 
-namespace WpLocalModelProvider\Providers\Ollama;
+namespace WpOllamaModelProvider\Providers\Ollama;
 
 use WordPress\AiClient\Providers\Http\Contracts\RequestAuthenticationInterface;
 use WordPress\AiClient\Providers\Http\DTO\Request;
