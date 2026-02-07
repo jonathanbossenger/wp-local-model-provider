@@ -2,12 +2,12 @@
 /**
  * Ollama Provider implementation.
  *
- * @package wp-local-model-provider
+ * @package wp-ollama-model-provider
  */
 
 declare(strict_types=1);
 
-namespace WpLocalModelProvider\Providers\Ollama;
+namespace WpOllamaModelProvider\Providers\Ollama;
 
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiProvider;
@@ -38,7 +38,7 @@ class OllamaProvider extends AbstractApiProvider {
 	 */
 	protected static function baseUrl(): string {
 		// Check deployment mode.
-		$deployment_mode = get_option( 'wp_local_model_provider_ollama_deployment_mode', 'local' );
+		$deployment_mode = get_option( 'wp_ollama_model_provider_ollama_deployment_mode', 'local' );
 
 		if ( 'cloud' === $deployment_mode ) {
 			/**

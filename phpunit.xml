@@ -8,7 +8,7 @@
     beStrictAboutOutputDuringTests="true"
     verbose="true">
     <testsuites>
-        <testsuite name="WP Local Model Provider Test Suite">
+        <testsuite name="WP Ollama Model Provider Test Suite">
             <directory>tests</directory>
         </testsuite>
     </testsuites>

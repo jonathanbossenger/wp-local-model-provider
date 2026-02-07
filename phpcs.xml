@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="WP Local Model Provider">
-    <description>WordPress Coding Standards for WP Local Model Provider</description>
+<ruleset name="WP Ollama Model Provider">
+    <description>WordPress Coding Standards for WP Ollama Model Provider</description>
 
     <!-- Check all PHP files in the plugin -->
     <file>.</file>

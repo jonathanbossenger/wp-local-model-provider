@@ -1,6 +1,6 @@
 # Cloud Support Implementation
 
-This document details the implementation of Ollama Cloud support in the WP Local Model Provider plugin.
+This document details the implementation of Ollama Cloud support in the WP Ollama Model Provider plugin.
 
 ## Overview
 
@@ -19,13 +19,13 @@ The plugin now supports two deployment modes:
 
 ### 2. Modified Files
 
-#### `wp-local-model-provider.php`
-- Added deployment mode setting (`wp_local_model_provider_ollama_deployment_mode`)
-- Added API key setting (`wp_local_model_provider_ollama_api_key`)
-- Updated `wp_local_model_provider_register_ollama()` to use appropriate authentication based on mode
+#### `wp-ollama-model-provider.php`
+- Added deployment mode setting (`wp_ollama_model_provider_ollama_deployment_mode`)
+- Added API key setting (`wp_ollama_model_provider_ollama_api_key`)
+- Updated `wp_ollama_model_provider_register_ollama()` to use appropriate authentication based on mode
 - Added new settings fields for deployment mode and API key
 - Added JavaScript for conditional field display and dynamic model list refresh
-- Added AJAX endpoint `wp_local_model_provider_ajax_get_models()` for fetching models
+- Added AJAX endpoint `wp_ollama_model_provider_ajax_get_models()` for fetching models
 - Updated model fetching to support cloud authentication
 - Updated settings page info card with cloud instructions
 - Model list now refreshes automatically when deployment mode changes
@@ -44,13 +44,13 @@ The plugin now supports two deployment modes:
 
 The plugin stores three settings in WordPress options:
 
-1. `wp_local_model_provider_ollama_deployment_mode` (string, default: 'local')
+1. `wp_ollama_model_provider_ollama_deployment_mode` (string, default: 'local')
    - Values: 'local' or 'cloud'
 
-2. `wp_local_model_provider_ollama_api_key` (string, default: '')
+2. `wp_ollama_model_provider_ollama_api_key` (string, default: '')
    - Only used when deployment mode is 'cloud'
 
-3. `wp_local_model_provider_ollama_model` (string, default: '')
+3. `wp_ollama_model_provider_ollama_model` (string, default: '')
    - Selected model ID (unchanged)
 
 ## Filters
@@ -65,7 +65,7 @@ The plugin stores three settings in WordPress options:
 
 ## User Interface
 
-### Settings Page (Settings > Local AI Models)
+### Settings Page (Settings > Ollama AI Models)
 
 The settings page now includes:
 

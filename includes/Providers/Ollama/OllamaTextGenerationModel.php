@@ -2,12 +2,12 @@
 /**
  * Ollama Text Generation Model implementation.
  *
- * @package wp-local-model-provider
+ * @package wp-ollama-model-provider
  */
 
 declare(strict_types=1);
 
-namespace WpLocalModelProvider\Providers\Ollama;
+namespace WpOllamaModelProvider\Providers\Ollama;
 
 use WordPress\AiClient\Providers\Http\DTO\Request;
 use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;

@@ -1,15 +1,15 @@
 # Settings Page Layout
 
-This document shows the layout of the WordPress admin settings page for WP Local Model Provider with cloud support.
+This document shows the layout of the WordPress admin settings page for WP Ollama Model Provider with cloud support.
 
 ## Settings Page Location
-**WordPress Admin → Settings → Local AI Models**
+**WordPress Admin → Settings → Ollama AI Models**
 
 ## Page Layout
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ Local AI Models                                                  │
+│ Ollama AI Models                                                │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
 │ Ollama Model Selection                                          │
@@ -150,13 +150,13 @@ When the deployment mode dropdown changes:
 ## Database Storage
 
 Settings are stored as WordPress options:
-- `wp_local_model_provider_ollama_deployment_mode`: "local" or "cloud"
-- `wp_local_model_provider_ollama_api_key`: API key string (empty for local)
-- `wp_local_model_provider_ollama_model`: Selected model ID
+- `wp_ollama_model_provider_ollama_deployment_mode`: "local" or "cloud"
+- `wp_ollama_model_provider_ollama_api_key`: API key string (empty for local)
+- `wp_ollama_model_provider_ollama_model`: Selected model ID
 
 ## Model List Caching
 
 Both local and cloud model lists are cached in the same transient:
-- Transient key: `wp_local_model_provider_ollama_models`
+- Transient key: `wp_ollama_model_provider_ollama_models`
 - TTL: 5 minutes
 - Cache is invalidated when "Refresh Model List" is clicked
