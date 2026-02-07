@@ -33,7 +33,7 @@ The plugin now supports two deployment modes:
 #### `includes/Providers/Ollama/OllamaProvider.php`
 - Updated `baseUrl()` method to return different URL based on deployment mode
 - Local: `http://localhost:11434` (default)
-- Cloud: `https://api.ollama.ai` (default, filterable)
+- Cloud: `https://ollama.com` (default, filterable)
 
 #### `README.md`
 - Updated description to mention cloud support
@@ -57,7 +57,7 @@ The plugin stores three settings in WordPress options:
 
 ### New Filter
 - `wp_ai_client_ollama_cloud_base_url` - Customize Ollama Cloud base URL
-  - Default: `https://api.ollama.ai`
+  - Default: `https://ollama.com`
 
 ### Existing Filter
 - `wp_ai_client_ollama_base_url` - Customize local Ollama base URL

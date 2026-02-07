@@ -48,7 +48,7 @@ class OllamaProvider extends AbstractApiProvider {
 			 *
 			 * @param string $base_url Default Ollama Cloud base URL.
 			 */
-			return apply_filters( 'wp_ai_client_ollama_cloud_base_url', 'https://api.ollama.ai' );
+			return apply_filters( 'wp_ai_client_ollama_cloud_base_url', 'https://ollama.com' );
 		}
 
 		/**

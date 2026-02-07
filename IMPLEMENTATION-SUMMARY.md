@@ -31,7 +31,7 @@ The original issue requested adding support for Ollama Cloud API access alongsid
 **File**: `includes/Providers/Ollama/OllamaProvider.php`
 - Modified `baseUrl()` method to return different URLs based on deployment mode
 - Local: `http://localhost:11434` (default)
-- Cloud: `https://api.ollama.ai` (default, filterable)
+- Cloud: `https://ollama.com` (default, filterable)
 
 ### 4. Documentation
 **Files Created/Updated**:
@@ -50,7 +50,7 @@ The API key field automatically shows/hides based on the selected deployment mod
 ### Auto-Refresh Models ⭐ NEW
 When users switch between Local and Cloud deployment modes, the model list automatically refreshes:
 - Fetches from `http://localhost:11434/api/tags` for local mode
-- Fetches from `https://api.ollama.ai/api/tags` for cloud mode
+- Fetches from `https://ollama.com/api/tags` for cloud mode
 - Shows a loading state during the fetch
 - Updates the dropdown dynamically without page reload
 - Displays context-appropriate error messages
@@ -78,7 +78,7 @@ Three options stored in `wp_options` table:
 ### Filters Available
 Two filters for customization:
 - `wp_ai_client_ollama_base_url` - Local Ollama URL (default: http://localhost:11434)
-- `wp_ai_client_ollama_cloud_base_url` - Cloud Ollama URL (default: https://api.ollama.ai)
+- `wp_ai_client_ollama_cloud_base_url` - Cloud Ollama URL (default: https://ollama.com)
 
 ### Code Quality
 - All PHP files pass syntax validation

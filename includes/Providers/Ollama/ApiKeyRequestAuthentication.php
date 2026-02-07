@@ -49,7 +49,7 @@ class ApiKeyRequestAuthentication implements RequestAuthenticationInterface {
 	 */
 	public function authenticateRequest( Request $request ): Request {
 		// Add Authorization header with API key.
-		$headers            = $request->getHeaders();
+		$headers                  = $request->getHeaders();
 		$headers['Authorization'] = 'Bearer ' . $this->api_key;
 
 		return new Request(
