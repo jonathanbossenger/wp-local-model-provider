@@ -50,13 +50,21 @@ class ApiKeyRequestAuthentication implements RequestAuthenticationInterface {
 	public function authenticateRequest( Request $request ): Request {
 		// Add Authorization header with API key.
 		$headers                  = $request->getHeaders();
-		$headers['Authorization'] = 'Bearer ' . $this->api_key;
+		$headers['Authorization'] = array( 'Bearer ' . $this->api_key );
+
+		$data = $request->getData();
+		if ( $request->getMethod()->isGet() ) {
+			$data = null;
+		} elseif ( null === $data ) {
+			$data = $request->getBody();
+		}
 
 		return new Request(
-			$request->getUrl(),
 			$request->getMethod(),
+			$request->getUri(),
 			$headers,
-			$request->getBody()
+			$data,
+			$request->getOptions()
 		);
 	}
 
